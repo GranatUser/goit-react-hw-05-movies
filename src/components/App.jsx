@@ -1,63 +1,27 @@
-import React from "react";
-import { nanoid } from 'nanoid';
-import { ContactForm } from "./ContactForm";
-import { Filter } from "./Filter";
-import { ContactList } from "./ContactList";
-import { AppStyled } from '../App.Styled'
-export class App extends React.Component {
-  state = {
-    contacts: [],
-    filter: ''
-  }
+import React,{lazy} from "react";
+import { SharedLayout } from "./SharedLayout/SharedLayout";
+import { Routes, Route } from "react-router-dom";
 
-  componentDidMount() {
-    const contactsLocalStorage = JSON.parse(localStorage.getItem("contacts"))??[];
-    this.setState({contacts: contactsLocalStorage})
-    
-  }
-  
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts.length !== this.state.contacts.length) {
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
-    }
-  }
-  handleClickDelete = (event) => {
-    const currentId = event.currentTarget.id;
-    this.setState((prev) => {
-     return { contacts: (prev.contacts.filter((contact) => { return contact.id !== currentId })) }
-    });
-  }
-  handleOnChange = (event) => {
-    this.setState({ filter: event.target.value })
-  }
-  onAddContact = (contact) => {
-    const existContact = this.state.contacts.find((contactApp) => { return contactApp.name === contact.name });
-    if (existContact !== undefined) {
-      alert(contact.name + " is already in contacts.");
-      return;
-    }
-    const finalContact = {
-      id: nanoid(),
-      ...contact
-    }
-    this.setState((prev) => {
-      return { contacts: [...prev.contacts, finalContact] }
-    });
+const MovieDetails = lazy(() => import("../pages/MovieDetails/MovieDetails"));
+const Home = lazy(() => import("../pages/Home/Home"));
+const Movies = lazy(() => import('../pages/Movies/Movies'));
+const Reviews = lazy(() => import('../components/Reviews/Reviews'));
+const Cast = lazy(() => import('../components/Cast/Cast'));
+const GoMain = lazy(() => import('./GoMain'));
+export function App() {
 
-  }
-  getFilterContacts = () => {
-    return this.state.contacts.filter((contact) => { return contact.name.toLowerCase().includes(this.state.filter.toLowerCase()) });
-  }
-  render() {
     return (
-      <AppStyled>
-        <h1>Phonebook</h1>
-        <ContactForm onAddContact={this.onAddContact} />
-        <h2>Contacts</h2>
-        <Filter filter={this.state.filter} handleOnChange={this.handleOnChange} />
-        <ContactList contacts={this.getFilterContacts()} handleClickDelete={this.handleClickDelete} />
-      </AppStyled>
-
+      <Routes>
+        <Route path="/" element={<SharedLayout />}>
+          <Route path="*" element={<GoMain></GoMain>} />
+          <Route index element={<Home />} />
+          <Route path="movies" element={<Movies />} />
+          <Route path="movies/:id" element={<MovieDetails />}>
+            <Route path="cast" element={<Cast />} />
+            <Route path="reviews" element={<Reviews />} />
+          </Route>
+        </Route>
+      </Routes>
     );
-  }
+
 } 
